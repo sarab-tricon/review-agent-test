@@ -1,5 +1,8 @@
 name: Code Review Agent
 
+permissions:
+  pull-requests: write
+  contents: read
 on:
   pull_request:
     types: [opened, synchronize, reopened] # When PR is first created, new commits are pushed, PR is reopened
