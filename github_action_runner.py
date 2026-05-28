@@ -99,27 +99,33 @@ def review_single_file(file_path, file_content):
         return None
 
 def format_review_comment(reviews):
-    comment = "# 🤖 Code Review Agent Analysis\n\n"
+    comment = "## 🤖 Automated Code Review\n\n"
+    
+    has_issues = False
     
     for review in reviews:
         if review:
-            comment += f"## File: `{review['file']}`\n\n"
+            # Extract only the first few lines from each agent (summary only)
+            analyzer_lines = review['analyzer'].split('\n')[:3]
+            security_lines = review['security'].split('\n')[:3]
             
-            comment += "### 🐛 Bug Analysis\n"
-            comment += f"{review['analyzer']}\n\n"
+            # Only show if there are actual issues
+            if analyzer_lines:
+                if not has_issues:
+                    comment += "### 🔴 Issues Found\n\n"
+                    has_issues = True
+                
+                comment += f"**File:** `{review['file']}`\n"
+                comment += "\n".join(analyzer_lines) + "\n\n"
             
-            comment += "### ⚡ Optimization Suggestions\n"
-            comment += f"{review['optimizer']}\n\n"
-            
-            comment += "### 🔒 Security Analysis\n"
-            comment += f"{review['security']}\n\n"
-            
-            comment += "### 📚 Documentation Review\n"
-            comment += f"{review['documentation']}\n\n"
-            
-            comment += "---\n\n"
+            if security_lines and "vulnerability" in review['security'].lower():
+                comment += f"**Security Concern:** `{review['file']}`\n"
+                comment += "\n".join(security_lines) + "\n\n"
     
-    comment += "*Review completed by Code Review Agent*"
+    if not has_issues:
+        comment += "✅ **No critical issues found!**\n"
+    
+    comment += "\n---\n*Review by Code Review Agent | [Report Issue](https://github.com)*"
     
     return comment
 
