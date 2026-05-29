@@ -1,55 +1,71 @@
 def format_code_review_prompt(code_content, agent_type):
     if agent_type == "analyzer":
-        return f"""Analyze this code for bugs and logical errors.
-        RESPOND WITH ONLY A BULLETED LIST. NO EXPLANATIONS.
+        return f"""Analyze code for bugs. RESPOND ONLY WITH BULLET POINTS.
+
 Code:
 {code_content}
 
-Provide:
-1. List of bugs found
-2. Severity (critical/medium/low)
-3. Line numbers where issues occur
-4. Short explanation of each bug
+ONLY output format:
+- Line X: [Bug description]
+- Line Y: [Bug description]
 
-If no bugs: "No bugs found"""
+Example:
+- Line 35: Division by zero when list is empty
+- Line 22: KeyError if 'age' key missing
+
+If no bugs: "No bugs found"
+NO OTHER TEXT. NO EXPLANATIONS. ONLY BULLETS. """
 
     elif agent_type == "optimizer":
-        return f"""Suggest optimizations for this code.
+        return f"""Suggest optimizations. RESPOND ONLY WITH BULLET POINTS.
+
 Code:
 {code_content}
 
-Optimizations (if any):
-- [Optimization]
-- [Optimization]
+ONLY output format:
+- Line X: [Optimization]
+- Line Y: [Optimization]
 
-If no optimizations: "No optimizations needed"""
+Example:
+- Line 32: Use sum() instead of loop for efficiency
+- Line 28: Combine duplicate loops
+
+If no optimizations: "No optimizations needed"
+NO OTHER TEXT. NO EXPLANATIONS. ONLY BULLETS."""
 
     elif agent_type == "security":
-        return f"""Check this code for security vulnerabilities.
+        return f"""Find security vulnerabilities. RESPOND ONLY WITH BULLET POINTS.
+
 Code:
 {code_content}
 
-Provide:
-1. Security vulnerabilities found
-2. Risk level (critical/high/medium/low)
-3. Affected lines
-4. How to fix each vulnerability in short
+ONLY output format:
+- Line X: [Vulnerability description]
+- Line Y: [Vulnerability description]
 
-If none: "No security issues found"""
+Example:
+- Line 10: Hardcoded password visible in code
+- Line 54: SQL injection risk in query construction
+
+If none: "No security issues found"
+NO OTHER TEXT. NO EXPLANATIONS. ONLY BULLETS."""
 
     elif agent_type == "documentation":
-        return f"""Check code documentation quality.
+        return f"""Check documentation quality. RESPOND ONLY WITH BULLET POINTS.
 
-        RESPOND WITH ONLY A BULLETED LIST. NO EXPLANATIONS.
 Code:
 {code_content}
 
-Provide:
-1. Missing documentation areas
-2. Unclear variable/function names
-3. Missing docstrings/comments
+ONLY output format:
+- Line X: [Documentation issue]
+- Line Y: [Documentation issue]
 
-If none: "Documentation is adequate"""
+Example:
+- Line 15: Missing docstring for function
+- Line 8: Unclear variable name 'x'
+
+If none: "Documentation is adequate"
+NO OTHER TEXT. NO EXPLANATIONS. ONLY BULLETS."""
 
 
 def parse_agent_response(response_text):
