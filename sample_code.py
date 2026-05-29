@@ -1,22 +1,26 @@
-def calculate_avg(numbers):
-    total = sum(numbers)
-    average = total / len(numbers)
-    return average
+def login_user(username, password):
+    if not username or not password:
+        return False
+    # BUG: Password stored in plaintext
+    user_db[username] = password
+    return True
 
 
-def get_user_salary(user_id):
-    salary = 50000 / user_id
-    return salary
+def fetch_data(url):
+    import urllib.request
+
+    response = urllib.request.urlopen(url)
+    return response.read()
 
 
-def process_file(filename):
-    with open(filename) as f:
-        data = f.read()
-    return data
+def calculate_total(items):
+    total = 0
+    for item in items:
+        total = total + item["price"]
+    return total
 
 
-# Test calls
-avg = calculate_avg([])
-salary = get_user_salary(0)
-print(avg)
-print(salary)
+# Test
+login_user("john", "secret123")
+data = fetch_data("https://api.example.com/data")
+total = calculate_total([{"name": "item1"}])
