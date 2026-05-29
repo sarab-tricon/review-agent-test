@@ -106,38 +106,76 @@ def format_review_comment(reviews):
 
     critical_issues = []
     security_issues = []
-    improvements = []
 
     for review in reviews:
         if review:
             file_name = review["file"]
 
-            # Extract critical issues from analyzer
-            analyzer_text = review["analyzer"].split("\n")
-            for line in analyzer_text:
-                if any(
-                    word in line.lower()
-                    for word in ["bug", "error", "crash", "critical", "severity"]
+            # Extract critical issues - look for lines starting with dash or very short declarative statements
+            analyzer_text = review["analyzer"]
+            analyzer_lines = analyzer_text.split("\n")
+
+            # Find bullet points or short issue statements
+            for i, line in enumerate(analyzer_lines):
+                line = line.strip()
+                # Skip empty lines, narrative openings, and very long lines
+                if not line or len(line) < 5 or len(line) > 150:
+                    continue
+
+                # Look for actual issue descriptions (bullet points, short sentences)
+                is_issue = (
+                    line.startswith("-")  # Bullet point
+                    or line.startswith("•")  # Alternative bullet
+                    or ("division by zero" in line.lower())
+                    or ("crash" in line.lower())
+                    or ("error" in line.lower())
+                    or ("bug" in line.lower())
+                    or ("invalid" in line.lower())
+                    or ("missing" in line.lower())
+                    or (line[0].isupper() and line.endswith(":"))  # Header-like line
+                )
+
+                if is_issue and not any(
+                    x in line.lower()
+                    for x in ["okay", "let's", "first", "next", "looking"]
                 ):
-                    if line.strip() and len(line) > 10:
-                        critical_issues.append(f"- `{file_name}`: {line.strip()[:100]}")
-                        break
+                    # Remove bullet points for cleaner display
+                    clean_line = line.lstrip("-•").strip()
+                    if clean_line and clean_line not in critical_issues:
+                        critical_issues.append(f"- `{file_name}`: {clean_line[:120]}")
 
             # Extract security issues
-            security_text = review["security"].split("\n")
-            for line in security_text:
-                if any(
-                    word in line.lower()
-                    for word in ["vulnerability", "risk", "security", "attack"]
+            security_text = review["security"]
+            security_lines = security_text.split("\n")
+
+            for i, line in enumerate(security_lines):
+                line = line.strip()
+                if not line or len(line) < 5 or len(line) > 150:
+                    continue
+
+                is_security_issue = (
+                    line.startswith("-")
+                    or line.startswith("•")
+                    or ("vulnerability" in line.lower())
+                    or ("security" in line.lower())
+                    or ("attack" in line.lower())
+                    or ("exposure" in line.lower())
+                    or ("injection" in line.lower())
+                    or ("risk" in line.lower())
+                )
+
+                if is_security_issue and not any(
+                    x in line.lower()
+                    for x in ["okay", "let's", "first", "next", "looking"]
                 ):
-                    if line.strip() and len(line) > 10:
-                        security_issues.append(f"- `{file_name}`: {line.strip()[:100]}")
-                        break
+                    clean_line = line.lstrip("-•").strip()
+                    if clean_line and clean_line not in security_issues:
+                        security_issues.append(f"- `{file_name}`: {clean_line[:120]}")
 
     # Format output
     if critical_issues:
         comment += "### 🔴 Critical Issues\n"
-        for issue in critical_issues[:5]:  # Show max 5 issues
+        for issue in critical_issues[:5]:
             comment += f"{issue}\n"
         comment += "\n"
 
