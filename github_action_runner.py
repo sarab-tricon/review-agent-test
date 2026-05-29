@@ -112,124 +112,72 @@ def format_review_comment(reviews):
             file_has_issues = False
             file_comment = f"### 📄 `{file_name}`\n"
 
-            # Check for CRITICAL ISSUES (only if analyzer found any)
-            analyzer_text = review["analyzer"].lower()
-            if any(x in analyzer_text for x in ["line", "bug", "error", "crash"]):
-                critical_lines = []
-                for line in review["analyzer"].split("\n"):
-                    line = line.strip()
-                    if not line or len(line) < 5:
-                        continue
-                    if any(x in line.lower() for x in ["line", "bug", "error"]):
-                        if not any(
-                            x in line.lower() for x in ["okay", "let's", "first"]
-                        ):
-                            clean = line.lstrip("-•").strip()
-                            if clean and clean not in critical_lines:
-                                critical_lines.append(clean)
+            # Extract CRITICAL ISSUES (look for "- Line X:" format)
+            critical_lines = []
+            for line in review["analyzer"].split("\n"):
+                line = line.strip()
+                # Only capture lines that start with "- Line" (actual findings)
+                if line.startswith("- Line"):
+                    clean = line[2:].strip()  # Remove "- " prefix
+                    if clean and clean not in critical_lines:
+                        critical_lines.append(clean)
 
-                if critical_lines:
-                    file_comment += "**🔴 Critical Issues:**\n"
-                    for issue in critical_lines[:3]:
-                        file_comment += f"- {issue}\n"
-                    file_comment += "\n"
-                    file_has_issues = True
+            if critical_lines:
+                file_comment += "**🔴 Critical Issues:**\n"
+                for issue in critical_lines[:5]:
+                    file_comment += f"- {issue}\n"
+                file_comment += "\n"
+                file_has_issues = True
 
-            # Check for SECURITY ISSUES (only if security agent found any)
-            security_text = review["security"].lower()
-            if any(
-                x in security_text
-                for x in ["line", "vulnerability", "security", "risk"]
-            ):
-                security_lines = []
-                for line in review["security"].split("\n"):
-                    line = line.strip()
-                    if not line or len(line) < 5:
-                        continue
-                    if any(
-                        x in line.lower()
-                        for x in ["line", "vulnerability", "security", "risk"]
-                    ):
-                        if not any(
-                            x in line.lower() for x in ["okay", "let's", "first"]
-                        ):
-                            clean = line.lstrip("-•").strip()
-                            if clean and clean not in security_lines:
-                                security_lines.append(clean)
+            # Extract SECURITY ISSUES
+            security_lines = []
+            for line in review["security"].split("\n"):
+                line = line.strip()
+                if line.startswith("- Line"):
+                    clean = line[2:].strip()
+                    if clean and clean not in security_lines:
+                        security_lines.append(clean)
 
-                if security_lines:
-                    file_comment += "**🔒 Security Concerns:**\n"
-                    for issue in security_lines[:3]:
-                        file_comment += f"- {issue}\n"
-                    file_comment += "\n"
-                    file_has_issues = True
+            if security_lines:
+                file_comment += "**🔒 Security Concerns:**\n"
+                for issue in security_lines[:5]:
+                    file_comment += f"- {issue}\n"
+                file_comment += "\n"
+                file_has_issues = True
 
-            # Check for OPTIMIZATIONS (only if optimizer found any)
-            optimizer_text = review["optimizer"].lower()
-            if any(
-                x in optimizer_text
-                for x in ["line", "optimization", "improve", "refactor", "performance"]
-            ):
-                optimization_lines = []
-                for line in review["optimizer"].split("\n"):
-                    line = line.strip()
-                    if not line or len(line) < 5:
-                        continue
-                    if any(
-                        x in line.lower()
-                        for x in ["line", "optimization", "improve", "refactor"]
-                    ):
-                        if not any(
-                            x in line.lower() for x in ["okay", "let's", "first"]
-                        ):
-                            clean = line.lstrip("-•").strip()
-                            if clean and clean not in optimization_lines:
-                                optimization_lines.append(clean)
+            # Extract OPTIMIZATIONS
+            optimization_lines = []
+            for line in review["optimizer"].split("\n"):
+                line = line.strip()
+                if line.startswith("- Line"):
+                    clean = line[2:].strip()
+                    if clean and clean not in optimization_lines:
+                        optimization_lines.append(clean)
 
-                if optimization_lines:
-                    file_comment += "**⚡ Optimizations:**\n"
-                    for opt in optimization_lines[:3]:
-                        file_comment += f"- {opt}\n"
-                    file_comment += "\n"
-                    file_has_issues = True
+            if optimization_lines:
+                file_comment += "**⚡ Optimizations:**\n"
+                for opt in optimization_lines[:5]:
+                    file_comment += f"- {opt}\n"
+                file_comment += "\n"
+                file_has_issues = True
 
-            # Check for DOCUMENTATION ISSUES (only if documentation agent found any)
-            doc_text = review["documentation"].lower()
-            if any(
-                x in doc_text
-                for x in ["line", "docstring", "documentation", "comment", "unclear"]
-            ):
-                doc_lines = []
-                for line in review["documentation"].split("\n"):
-                    line = line.strip()
-                    if not line or len(line) < 5:
-                        continue
-                    if any(
-                        x in line.lower()
-                        for x in [
-                            "line",
-                            "docstring",
-                            "documentation",
-                            "comment",
-                            "unclear",
-                        ]
-                    ):
-                        if not any(
-                            x in line.lower()
-                            for x in ["okay", "let's", "first", "adequate"]
-                        ):
-                            clean = line.lstrip("-•").strip()
-                            if clean and clean not in doc_lines:
-                                doc_lines.append(clean)
+            # Extract DOCUMENTATION ISSUES
+            doc_lines = []
+            for line in review["documentation"].split("\n"):
+                line = line.strip()
+                if line.startswith("- Line"):
+                    clean = line[2:].strip()
+                    if clean and clean not in doc_lines:
+                        doc_lines.append(clean)
 
-                if doc_lines:
-                    file_comment += "**📚 Documentation:**\n"
-                    for doc in doc_lines[:3]:
-                        file_comment += f"- {doc}\n"
-                    file_comment += "\n"
-                    file_has_issues = True
+            if doc_lines:
+                file_comment += "**📚 Documentation:**\n"
+                for doc in doc_lines[:5]:
+                    file_comment += f"- {doc}\n"
+                file_comment += "\n"
+                file_has_issues = True
 
-            # Only add file comment if it has issues
+            # Only add file section if it has issues
             if file_has_issues:
                 comment += file_comment
                 has_any_issues = True
