@@ -104,89 +104,138 @@ def review_single_file(file_path, file_content):
 def format_review_comment(reviews):
     comment = "## 🤖 Code Review Results\n\n"
 
-    critical_issues = []
-    security_issues = []
+    has_any_issues = False
 
     for review in reviews:
         if review:
             file_name = review["file"]
+            file_has_issues = False
+            file_comment = f"### 📄 `{file_name}`\n"
 
-            # Extract critical issues - look for lines starting with dash or very short declarative statements
-            analyzer_text = review["analyzer"]
-            analyzer_lines = analyzer_text.split("\n")
+            # Check for CRITICAL ISSUES (only if analyzer found any)
+            analyzer_text = review["analyzer"].lower()
+            if any(x in analyzer_text for x in ["line", "bug", "error", "crash"]):
+                critical_lines = []
+                for line in review["analyzer"].split("\n"):
+                    line = line.strip()
+                    if not line or len(line) < 5:
+                        continue
+                    if any(x in line.lower() for x in ["line", "bug", "error"]):
+                        if not any(
+                            x in line.lower() for x in ["okay", "let's", "first"]
+                        ):
+                            clean = line.lstrip("-•").strip()
+                            if clean and clean not in critical_lines:
+                                critical_lines.append(clean)
 
-            # Find bullet points or short issue statements
-            for i, line in enumerate(analyzer_lines):
-                line = line.strip()
-                # Skip empty lines, narrative openings, and very long lines
-                if not line or len(line) < 5 or len(line) > 150:
-                    continue
+                if critical_lines:
+                    file_comment += "**🔴 Critical Issues:**\n"
+                    for issue in critical_lines[:3]:
+                        file_comment += f"- {issue}\n"
+                    file_comment += "\n"
+                    file_has_issues = True
 
-                # Look for actual issue descriptions (bullet points, short sentences)
-                is_issue = (
-                    line.startswith("-")  # Bullet point
-                    or line.startswith("•")  # Alternative bullet
-                    or ("division by zero" in line.lower())
-                    or ("crash" in line.lower())
-                    or ("error" in line.lower())
-                    or ("bug" in line.lower())
-                    or ("invalid" in line.lower())
-                    or ("missing" in line.lower())
-                    or (line[0].isupper() and line.endswith(":"))  # Header-like line
-                )
+            # Check for SECURITY ISSUES (only if security agent found any)
+            security_text = review["security"].lower()
+            if any(
+                x in security_text
+                for x in ["line", "vulnerability", "security", "risk"]
+            ):
+                security_lines = []
+                for line in review["security"].split("\n"):
+                    line = line.strip()
+                    if not line or len(line) < 5:
+                        continue
+                    if any(
+                        x in line.lower()
+                        for x in ["line", "vulnerability", "security", "risk"]
+                    ):
+                        if not any(
+                            x in line.lower() for x in ["okay", "let's", "first"]
+                        ):
+                            clean = line.lstrip("-•").strip()
+                            if clean and clean not in security_lines:
+                                security_lines.append(clean)
 
-                if is_issue and not any(
-                    x in line.lower()
-                    for x in ["okay", "let's", "first", "next", "looking"]
-                ):
-                    # Remove bullet points for cleaner display
-                    clean_line = line.lstrip("-•").strip()
-                    if clean_line and clean_line not in critical_issues:
-                        critical_issues.append(f"- `{file_name}`: {clean_line[:120]}")
+                if security_lines:
+                    file_comment += "**🔒 Security Concerns:**\n"
+                    for issue in security_lines[:3]:
+                        file_comment += f"- {issue}\n"
+                    file_comment += "\n"
+                    file_has_issues = True
 
-            # Extract security issues
-            security_text = review["security"]
-            security_lines = security_text.split("\n")
+            # Check for OPTIMIZATIONS (only if optimizer found any)
+            optimizer_text = review["optimizer"].lower()
+            if any(
+                x in optimizer_text
+                for x in ["line", "optimization", "improve", "refactor", "performance"]
+            ):
+                optimization_lines = []
+                for line in review["optimizer"].split("\n"):
+                    line = line.strip()
+                    if not line or len(line) < 5:
+                        continue
+                    if any(
+                        x in line.lower()
+                        for x in ["line", "optimization", "improve", "refactor"]
+                    ):
+                        if not any(
+                            x in line.lower() for x in ["okay", "let's", "first"]
+                        ):
+                            clean = line.lstrip("-•").strip()
+                            if clean and clean not in optimization_lines:
+                                optimization_lines.append(clean)
 
-            for i, line in enumerate(security_lines):
-                line = line.strip()
-                if not line or len(line) < 5 or len(line) > 150:
-                    continue
+                if optimization_lines:
+                    file_comment += "**⚡ Optimizations:**\n"
+                    for opt in optimization_lines[:3]:
+                        file_comment += f"- {opt}\n"
+                    file_comment += "\n"
+                    file_has_issues = True
 
-                is_security_issue = (
-                    line.startswith("-")
-                    or line.startswith("•")
-                    or ("vulnerability" in line.lower())
-                    or ("security" in line.lower())
-                    or ("attack" in line.lower())
-                    or ("exposure" in line.lower())
-                    or ("injection" in line.lower())
-                    or ("risk" in line.lower())
-                )
+            # Check for DOCUMENTATION ISSUES (only if documentation agent found any)
+            doc_text = review["documentation"].lower()
+            if any(
+                x in doc_text
+                for x in ["line", "docstring", "documentation", "comment", "unclear"]
+            ):
+                doc_lines = []
+                for line in review["documentation"].split("\n"):
+                    line = line.strip()
+                    if not line or len(line) < 5:
+                        continue
+                    if any(
+                        x in line.lower()
+                        for x in [
+                            "line",
+                            "docstring",
+                            "documentation",
+                            "comment",
+                            "unclear",
+                        ]
+                    ):
+                        if not any(
+                            x in line.lower()
+                            for x in ["okay", "let's", "first", "adequate"]
+                        ):
+                            clean = line.lstrip("-•").strip()
+                            if clean and clean not in doc_lines:
+                                doc_lines.append(clean)
 
-                if is_security_issue and not any(
-                    x in line.lower()
-                    for x in ["okay", "let's", "first", "next", "looking"]
-                ):
-                    clean_line = line.lstrip("-•").strip()
-                    if clean_line and clean_line not in security_issues:
-                        security_issues.append(f"- `{file_name}`: {clean_line[:120]}")
+                if doc_lines:
+                    file_comment += "**📚 Documentation:**\n"
+                    for doc in doc_lines[:3]:
+                        file_comment += f"- {doc}\n"
+                    file_comment += "\n"
+                    file_has_issues = True
 
-    # Format output
-    if critical_issues:
-        comment += "### 🔴 Critical Issues\n"
-        for issue in critical_issues[:5]:
-            comment += f"{issue}\n"
-        comment += "\n"
+            # Only add file comment if it has issues
+            if file_has_issues:
+                comment += file_comment
+                has_any_issues = True
 
-    if security_issues:
-        comment += "### 🔒 Security Concerns\n"
-        for issue in security_issues[:5]:
-            comment += f"{issue}\n"
-        comment += "\n"
-
-    if not critical_issues and not security_issues:
-        comment += "✅ No critical issues found!\n\n"
+    if not has_any_issues:
+        comment += "✅ **No issues found!** Code looks good.\n\n"
 
     comment += "---\n*Automated review by Code Review Agent*"
 
