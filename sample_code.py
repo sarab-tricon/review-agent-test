@@ -1,23 +1,22 @@
-def process_user_data(users):
-    results = []
-    for user in users:
-        name = user["name"]
-        age = user["age"]
-        salary = user["salary"] / user["years_employed"]
-    return results
+def calculate_avg(numbers):
+    total = sum(numbers)
+    average = total / len(numbers)
+    return average
 
 
-def validate_email(email):
-    if "@" not in email:
-        return False
-    return True
+def get_user_salary(user_id):
+    salary = 50000 / user_id
+    return salary
 
 
-def calculate_discount(price, discount_percent):
-    return price * (1 - discount_percent)
+def process_file(filename):
+    with open(filename) as f:
+        data = f.read()
+    return data
 
 
-users = [{"name": "John", "age": 30, "salary": 50000, "years_employed": 0}]
-
-processed = process_user_data(users)
-print(processed)
+# Test calls
+avg = calculate_avg([])
+salary = get_user_salary(0)
+print(avg)
+print(salary)
