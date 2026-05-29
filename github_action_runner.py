@@ -43,7 +43,14 @@ def get_changed_files(pr_details):
 def read_file_content(file_path):
     try:
         with open(file_path, "r", encoding="utf-8") as f:
-            return f.read()  # string return
+            lines = f.readlines()
+
+        # Add line numbers to code
+        numbered_code = ""
+        for line_num, line in enumerate(lines, 1):
+            numbered_code += f"{line_num:3d} | {line}"
+
+        return numbered_code
     except Exception as e:
         print(f"Error reading file {file_path}: {e}")
         return None
